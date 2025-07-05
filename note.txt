@@ -1,0 +1,44 @@
+/app
+  ├── page.tsx                   ← Public landing or home (optional)
+  ├── login/page.tsx             ← Login page with role selection
+  ├── dashboard
+  │   ├── layout.tsx             ← Shared layout (Header/Sidebar)
+  │   ├── page.tsx               ← Redirect based on user role
+  │   ├── teacher
+  │   │   └── page.tsx           ← Teacher dashboard
+  │   ├── assistant
+  │   │   └── page.tsx           ← Assistant dashboard
+  │   └── director
+  │       └── page.tsx           ← Director dashboard
+
+/components
+  ├── Header.tsx                 ← Shared top navigation bar
+  ├── Sidebar.tsx                ← Role-based sidebar menu
+  └── RoleSwitcher.tsx           ← (Optional) Test switch between roles
+
+/features
+  ├── teacher/                   ← Components, utils, features for Teacher role
+  ├── assistant/                 ← Components, utils, features for Assistant role
+  └── director/                  ← Components, utils, features for Director role
+
+/context
+  └── AuthContext.tsx           ← Manages login state, current user & role
+
+/types
+  └── user.ts                   ← User and Role type definitions
+
+/lib
+  └── auth.ts                   ← Helper functions (check roles, redirect logic, etc.)
+
+/public
+  └── images/                   ← Static assets like logos, avatars
+       ├── logo.png
+       ├── teacher-avatar.jpg
+       └── director-banner.png
+
+/styles
+  └── globals.css               ← Tailwind base + custom CSS
+
+/middleware.ts                  ← (Optional) Protect routes by role
+/next.config.js                 ← Next.js config
+/tailwind.config.js             ← Tailwind config

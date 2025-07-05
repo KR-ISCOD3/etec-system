@@ -1,17 +1,23 @@
+// app/dashboard/page.tsx
+'use client';
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
-  return (
-    <div>
-      <main className="w-[100%] h-[100vh] bg-gray-200 grid place-content-center">
-        <div>
-          <h1 className="text-6xl font-bold">
-            Welcome 
-            <span className="text-blue-950"> Back</span>
-          </h1>
-          <p>Please enter your username or email and password</p>
-        </div>
-      </main>
-    </div>
-  );
+export default function page() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    if (user.role === "director") {
+      router.replace("/dashboard/director");
+    } else if (user.role === "teacher") {
+      router.replace("/dashboard/teacher");
+    } else {
+      router.replace("/login"); // or a 403 page
+    }
+  }, [router]);
+
+  return <p>Redirecting...</p>;
 }
