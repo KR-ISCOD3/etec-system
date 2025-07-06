@@ -35,14 +35,18 @@ export default function Page() {
 
     // Basic validation: Check if any field is empty
     for (const key in formData) {
-      if ((formData as any)[key] === '') {
-        toast.error('Please fill in all fields.', {
-          position: 'top-right',
-          theme: 'colored'
-        });
-        return; // Stop submission if any field is empty
+      if (Object.prototype.hasOwnProperty.call(formData, key)) {
+        if (formData[key as keyof typeof formData] === '') {
+          toast.error('Please fill in all fields.', {
+            position: 'top-right',
+            theme: 'colored',
+          });
+          return;
+        }
       }
     }
+    
+    
 
     // Success toast - form passed validation
     toast.success('Form submitted successfully!', { position: 'top-center' });

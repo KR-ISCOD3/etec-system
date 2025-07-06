@@ -12,6 +12,7 @@ import {
 import { IoLogOut, IoPeople, IoSettings } from 'react-icons/io5';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 
 // Define the menu items per role
 const roleBasedMenu = {
@@ -55,7 +56,7 @@ export default function Sidebar() {
       <div>
         <div className="flex items-center text-left py-6 text-xl font-bold border-b border-blue-900">
           <div className="w-[60px] h-[60px] overflow-hidden ms-4 me-1">
-            <img src="/image/eteclogo.png" alt="ETEC Logo" />
+            <Image src="/image/eteclogo.png" alt="ETEC Logo" />
           </div>
           <span className="text-white">ETEC CENTER</span>
         </div>

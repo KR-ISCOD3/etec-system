@@ -37,10 +37,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
   }, [onClose]);
 
   return (
-    <dialog ref={dialogRef} className="modal" onClick={e => {
-      // Close modal if backdrop clicked (outside modal-box)
-      //   if (e.target === dialogRef.current) onClose();
-    }}>
+    <dialog ref={dialogRef} className="modal">
       <div  className="w-full max-w-lg md:max-w-xl lg:max-w-2xl bg-white rounded-lg p-3 sm:p-4 relative mx-auto"
        onClick={e => e.stopPropagation()}>
         {/* Title */}

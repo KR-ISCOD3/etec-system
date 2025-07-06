@@ -124,11 +124,12 @@ export default function Page() {
 
             {/* Redirect to registration page link */}
             <p className="text-center text-xl mt-3">
-              Don't have an account?
+              Don&apos;t have an account?
               <Link href="/register" className="text-blue-800 font-bold">
                 &ensp;Please Register
               </Link>
             </p>
+
           </form>
         </div>
       </main>

@@ -20,7 +20,11 @@ import { topStudents } from "@/app/data/topstudents";
 import LoadingPage from "@/components/Loading";
 import Modal from "@/components/Modal";
 import Link from "next/link";
-
+type BuildingData = {
+  building1: string;
+  building2: string;
+  building3: string;
+};
 export default function TeacherPage() {
   const { authorized, loading } = useAuthGuard("teacher");
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
@@ -28,7 +32,7 @@ export default function TeacherPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "update">("add");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<BuildingData>({
     building1: "",
     building2: "",
     building3: "",
@@ -43,7 +47,7 @@ export default function TeacherPage() {
     setDropdownOpenIndex(dropdownOpenIndex === index ? null : index);
   };
 
-  const openAddModal = () => {
+  const openAddModal = (): void => {
     setMode("add");
     setFormData({
       building1: "",
@@ -53,7 +57,7 @@ export default function TeacherPage() {
     setIsModalOpen(true);
   };
   
-  const openUpdateModal = (existingData:any) => {
+  const openUpdateModal = (existingData: BuildingData) => {
     setMode("update");
     setFormData(existingData);
     setIsModalOpen(true);
