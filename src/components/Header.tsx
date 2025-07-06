@@ -1,5 +1,5 @@
 import { FaBell } from "react-icons/fa";
-import Image from "next/image";
+
 
 export default function Header() {
   return (
@@ -29,14 +29,7 @@ export default function Header() {
         <IconWithBadge icon={<FaBell />} count={4} />
 
         <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full gap-2">
-          {/* <Image
-            src=""
-            alt="User"
-            width={32}
-            height={32}
-            className="rounded-full"
-          /> */}
-          {/* Hidden on mobile, visible on lg+ */}
+          
           <div className="text-sm hidden lg:block">
             <p className="font-medium">Wiliam</p>
             <p className="text-xs text-gray-500">Super Admin</p>

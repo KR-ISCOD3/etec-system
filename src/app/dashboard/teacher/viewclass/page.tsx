@@ -1,5 +1,4 @@
 "use client";
-
 import {
   FaBuilding,
   FaHome,
@@ -111,10 +110,10 @@ export default function TeacherPage() {
                    
                         <td className="px-1 py-2 border border-gray-400 text-center font-bold text-xl">30 pt</td>
                         <td className="px-1 py-2 border border-gray-400">
-                          <input type="number" name="" id="" value={0} min={0} max={30} className="bg-white w-full py-2 outline-0 text-xl text-center"/>
+                          <input type="number" name="" id=""  className="bg-white w-full py-2 outline-0 text-xl text-center"/>
                         </td>
                         <td className="px-1 py-2 border border-gray-400">
-                          <input type="number" name="" id="" value={0} min={0} max={40} className="bg-white w-full py-2 outline-0 text-xl text-center"/>
+                          <input type="number" name="" id=""  className="bg-white w-full py-2 outline-0 text-xl text-center"/>
                         </td>
                         <td className="px-1 py-2 border border-gray-400 text-center">                  
                           <button className="p-3 bg-blue-950 rounded-lg text-white cursor-pointer hover:bg-blue-900 transition ">
