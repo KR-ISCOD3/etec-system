@@ -1,4 +1,6 @@
 // app/dashboard/teacher/page.tsx or wherever TeacherPage is located
+'use client';
+
 import {
     FaUserGraduate,
     FaUser,
