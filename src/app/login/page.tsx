@@ -4,6 +4,7 @@ import Link from "next/link"; // Next.js Link for client-side navigation
 import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa"; // Icons for inputs and toggles
 import { useState } from "react"; // React state hook
 import { ToastContainer, toast } from "react-toastify"; // Toast notifications for feedback
+import Image from "next/image";
 
 export default function Page() {
   // State for username/email input
@@ -49,7 +50,7 @@ export default function Page() {
           {/* Logo container */}
           <div className="w-[170px] h-[170px] mx-auto rounded-lg mb-4 overflow-hidden">
             {/* Logo image from public folder */}
-            <img 
+            <Image 
               src="image/eteclogo.png" 
               alt="ETEC Logo" 
               className="w-full h-full object-cover" 

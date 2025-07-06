@@ -10,7 +10,7 @@ import {
 } from "react-icons/fa";
 import { FaHourglassHalf } from "react-icons/fa6";
 import { MdWindow } from "react-icons/md";
-import { IoClose, IoEye, IoHome } from "react-icons/io5";
+import { IoClose,IoHome } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 
 import DashboardCard from "@/components/DashboardCard";
@@ -107,7 +107,7 @@ export default function TeacherPage() {
               
               <table className="w-full">
                 <tbody>
-                  {topStudents.map((student, index) => (
+                  {topStudents.map(student => (
                     <tr key={student.id} className="border-b border-gray-200 hover:bg-gray-100">
                       <td className="px-3 py-3">
                         <p className="text-xl font-bold">{student.name}</p>

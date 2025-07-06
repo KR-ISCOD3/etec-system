@@ -5,6 +5,7 @@ import Link from "next/link"; // Next.js Link for client-side navigation
 import { FaLock, FaUser, FaChevronDown, FaEye, FaEyeSlash } from "react-icons/fa"; // Icons for UI
 import { ToastContainer, toast } from "react-toastify"; // Toast notifications
 import 'react-toastify/dist/ReactToastify.css'; // Toast styles
+import Image from "next/image";
 
 export default function Page() {
   // State to toggle password visibility
@@ -69,7 +70,7 @@ export default function Page() {
         {/* Logo container */}
         <div className="w-[140px] h-[140px] mx-auto rounded-lg mb-4 overflow-hidden">
           {/* Image from public folder */}
-          <img src="/image/eteclogo.png" alt="logo" className="w-full h-full object-cover" />
+          <Image src="/image/eteclogo.png" alt="logo" className="w-full h-full object-cover" />
         </div>
 
         {/* Heading */}
