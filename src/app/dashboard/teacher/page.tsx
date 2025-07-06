@@ -20,11 +20,14 @@ import { topStudents } from "@/app/data/topstudents";
 import LoadingPage from "@/components/Loading";
 import Modal from "@/components/Modal";
 import Link from "next/link";
+
 type BuildingData = {
   building1: string;
   building2: string;
   building3: string;
 };
+type FormData = BuildingData | ClassItem | null;
+
 export default function TeacherPage() {
   const { authorized, loading } = useAuthGuard("teacher");
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
@@ -32,11 +35,8 @@ export default function TeacherPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState<"add" | "update">("add");
-  const [formData, setFormData] = useState<BuildingData>({
-    building1: "",
-    building2: "",
-    building3: "",
-  });
+
+  const [formData, setFormData] = useState<FormData| null>(null);
 
   const [isModalAddStuOpen,setIsModalAddStuOpen] = useState(false);
   const [isTransferModal,setIsTransferModal] = useState(false);
@@ -57,9 +57,9 @@ export default function TeacherPage() {
     setIsModalOpen(true);
   };
   
-  const openUpdateModal = (existingData: BuildingData) => {
+  const openUpdateModal = (cls: ClassItem) => {
     setMode("update");
-    setFormData(existingData);
+    setFormData(cls);
     setIsModalOpen(true);
   };
 
@@ -297,8 +297,8 @@ export default function TeacherPage() {
 
               <select
                 name="building1"
-                value={formData.building1}
-                onChange={(e) => setFormData({ ...formData, building1: e.target.value })}
+                value=""
+                onChange={(e) => setFormData(formData ? { ...formData, title: e.target.value } : null)}
                 className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               >
                 <option value="">Select Item</option>

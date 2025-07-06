@@ -73,8 +73,13 @@ export default function Page() {
         
         {/* Logo container */}
         <div className="w-[140px] h-[140px] mx-auto rounded-lg mb-4 overflow-hidden">
-          {/* Image from public folder */}
-          <Image src="/image/eteclogo.png" alt="logo" className="w-full h-full object-cover" />
+          <Image
+            src="/image/eteclogo.png"
+            alt="logo"
+            width={140}
+            height={140}
+            style={{ objectFit: "cover" }}
+          />
         </div>
 
         {/* Heading */}

@@ -48,15 +48,14 @@ export default function Page() {
         <div className="mx-auto w-[95%] sm:w-[480px] lg:w-[500px] text-center">
 
           {/* Logo container */}
-          <div className="w-[170px] h-[170px] mx-auto rounded-lg mb-4 overflow-hidden">
-            {/* Logo image from public folder */}
+          <div className="w-[170px] h-[170px] mx-auto rounded-lg mb-4 overflow-hidden relative">
             <Image 
-              src="image/eteclogo.png" 
+              src="/image/eteclogo.png"  // note the leading slash!
               alt="ETEC Logo" 
-              className="w-full h-full object-cover" 
+              fill                     // fill the parent div
+              style={{ objectFit: "cover" }}  // scale and crop nicely
             />
           </div>
-
           {/* Main heading */}
           <h1 className="text-5xl sm:text-6xl font-bold">
             Welcome <span className="text-blue-950">Back</span>
