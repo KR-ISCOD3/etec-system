@@ -54,16 +54,16 @@ export default function Sidebar() {
     <aside className="hidden lg:w-[250px] h-screen bg-blue-950 text-white lg:flex flex-col justify-between sticky top-0">
       {/* Logo */}
       <div>
-        <div className="flex items-center text-left py-6 text-xl font-bold border-b border-blue-900">
-          <div className="w-[60px] h-[60px] overflow-hidden ms-4 me-1 relative">
-              <Image 
-                src="/image/eteclogo.png" 
-                alt="ETEC Logo" 
-                fill 
-                style={{ objectFit: "cover" }} 
-              />
+        <div className="text-center py-6 text-xl font-bold border-b border-blue-900">
+          <div className="relative w-[60px] h-[60px] mx-auto rounded-lg mb-4 overflow-hidden">
+            <Image 
+              src="/image/eteclogo.png" 
+              alt="ETEC Logo" 
+              fill
+              style={{ objectFit: "cover", objectPosition: "center" }}
+            />
           </div>
-          <span className="text-white">ETEC CENTER</span>
+          <p className="text-white">ETEC CENTER</p>
         </div>
 
         {/* Dynamic Menu Items */}

@@ -62,9 +62,9 @@ export default function TeacherPage() {
           </div>
         </div>
 
-        <div className="w-85 md:w-full">
+        <div className="hidden lg:block w-full">
           <div className="mt-4 overflow-auto h-[550px]">
-            <table className="w-[1200px] md:w-full">
+            <table className="w-[1260px] lg:w-full">
               <thead>
                 <tr className="">
                   <th className="py-2 text-left px-1 text-gray-500 border border-gray-400 w-[300px]">Full Name</th>
@@ -137,6 +137,99 @@ export default function TeacherPage() {
             </table>
           </div>
         </div>
+
+        <div className="block lg:hidden w-full">
+          <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3 max-h-[550px] overflow-auto">
+            {students.map((v, i) => (
+              <div key={i} className="bg-white p-4 rounded-lg shadow border border-gray-300 flex justify-between">
+                <div className="">
+                  {/* Name & Reason */}
+                  <div className="mb-2">
+                    <h2 className="text-xl font-bold text-blue-800">{v.name}</h2>
+                    <p className="text-sm text-gray-500">Reason: I have a date</p>
+                  </div>
+
+                  {/* Gender */}
+                  <div className="mb-2">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg text-lg ${v.gender === "Male" ? "bg-blue-200 text-blue-600" : "bg-red-200 text-red-600"}`}>
+                      {v.gender === "Male" ? <FaMale className="text-2xl" /> : <FaFemale className="text-2xl" />} {v.gender}
+                    </span>
+                  </div>
+
+                  {/* Attendance */}
+                  <div className="mb-2 space-y-1">
+                    <div className="flex justify-between items-center my-2">
+                      <div className=" w-1/2 ">
+                        <span className="px-2 bg-green-200 text-green-600 rounded">
+                          Present
+                        </span>
+                      </div> 
+                      <div className="w-1/2">
+                        <span className="text-green-600 font-bold">
+                          : {v.present}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center my-2">
+                      <div className=" w-1/2 ">
+                        <span className="px-2  bg-orange-200 text-orange-600 rounded">Permission</span>
+                      </div> 
+                      <div className="w-1/2">
+                        <span className="text-orange-600 font-bold">: {v.permission}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center my-2">
+                      <div className=" w-1/2 ">
+                        <span className="px-2 bg-red-200 text-red-600 rounded">Absence</span>
+                      </div> 
+                      <div className="w-1/2">
+                        <span className="text-red-600 font-bold">
+                          : {v.absence}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between  mt-2 items-end">
+                    {/* Attendance Score (fixed) */}
+                    <div className="w-[32%]">
+                      <label className="block text-sm font-medium text-gray-700">Att Score</label>
+                      <div className="text-center text-xl font-bold bg-gray-100 py-2 rounded">30 pt</div>
+                    </div>
+
+                    {/* Activity Score */}
+                    <div className="w-[32%]">
+                      <label className="block text-sm font-medium text-gray-700">Act Score</label>
+                      <input type="number" className="w-full text-center py-2 border rounded outline-none" />
+                    </div>
+
+                    {/* Final Score */}
+                    <div className="w-[32%]">
+                      <label className="block text-sm font-medium text-gray-700">Final Score</label>
+                      <input type="number" className="w-full text-center py-2 border rounded outline-none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-col justify-start mt-3 flex-wrap pl-3">
+                  <button className="text-center my-2 p-2 bg-blue-950 text-white rounded hover:bg-blue-900 transition">
+                    <BiTransfer />
+                  </button>
+                  <button className="text-center my-2 p-2 bg-blue-950 text-white rounded hover:bg-blue-900 transition">
+                    <FaEye />
+                  </button>
+                  <button className="text-center my-2 p-2 bg-blue-950 text-white rounded hover:bg-blue-900 transition">
+                    <FaPen />
+                  </button>
+                  <button className="text-center my-2 p-2 bg-red-600 text-white rounded hover:bg-red-700 transition">
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </>
   );
