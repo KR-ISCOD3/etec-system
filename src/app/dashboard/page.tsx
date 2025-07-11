@@ -1,38 +1,35 @@
-"use client"; // Enables client-side behavior in Next.js App Router
+'use client'
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation"; // Client-side navigation
+import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/Loading";
+import { fetchUser } from "@/store/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 
-// Main Dashboard entry page
-export default function DashboardPage() {
-  const router = useRouter(); // Hook to programmatically navigate
+export default function Page() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { user, loading } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    // Get the 'user' object from localStorage
-    const userStr = localStorage.getItem("user");
-    const user = userStr ? JSON.parse(userStr) : null;
+    dispatch(fetchUser());  // No TS error now
+  }, [dispatch]);
 
-    // const user = {role:"teacher"}; // test
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.replace("/login");
+      } else if (user.role === "director") {
+        router.replace("/dashboard/director");
+      } else if (user.role === "instructor") {
+        router.replace("/dashboard/teacher");
+      } else {
+        router.replace("/unauthorized");
+      }
+    }
+  }, [user, loading, router]);
 
-    // If no user or role found, redirect to login page
-    if (!user?.role) {
-      router.replace("/login");
-    }
-    // Redirect based on user role
-    else if (user.role === "teacher") {
-      router.replace("/dashboard/teacher");
-    } else if (user.role === "director") {
-      router.replace("/dashboard/director");
-    } else if (user.role === "assistant") {
-      router.replace("/dashboard/assistant");
-    }
-    // If role is not recognized, go to unauthorized page
-    else {
-      router.replace("/unauthorized");
-    }
-  }, [router]); // Dependency: run effect when router is available
+  if (loading) return <LoadingPage />;
 
-  // Show simple message while redirecting
-  return <LoadingPage/>;
+  return null;
 }

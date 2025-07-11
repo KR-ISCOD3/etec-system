@@ -8,14 +8,10 @@ import {
   } from "react-icons/fa";
   import { FaBuildingCircleCheck } from "react-icons/fa6";
   import DashboardCard from "@/components/DashboardCard"; // Adjust path as needed
-import { useAuthGuard } from "@/hooks/useAuthGuard";
+
   
   export default function DirectorPage() {
-    const { authorized, loading } = useAuthGuard("director");
     
-    if (loading) return <p>Checking permission...</p>;
-    if (!authorized) return null;
-
     return (
       <div className="py-1 px-2">
         <p className="text-gray-600">Welcome back, admin.</p>

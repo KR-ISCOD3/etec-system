@@ -12,18 +12,15 @@ import {
   FaMale,
   FaFemale,
 } from "react-icons/fa";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
-import LoadingPage from "@/components/Loading";
+
+
 import DashboardClassCard from "@/components/DashboardClassCard";
 import { LuComputer } from "react-icons/lu";
 import { BiTransfer } from "react-icons/bi";
 import { students } from "@/app/data/student";
 
 export default function TeacherPage() {
-  const { authorized, loading } = useAuthGuard("teacher");
-
-  if (loading) return <LoadingPage />;
-  if (!authorized) return null;
+  
 
   return (
     <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FaUsers,
   FaChalkboardTeacher,
@@ -14,12 +14,14 @@ import { IoClose,IoHome } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 
 import DashboardCard from "@/components/DashboardCard";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { classData, ClassItem } from "@/app/data/classes";
 import { topStudents } from "@/app/data/topstudents";
 import LoadingPage from "@/components/Loading";
 import Modal from "@/components/Modal";
 import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { RootState } from "@/store/store";
+import { fetchUser } from "@/store/auth/authSlice";
 
 type BuildingData = {
   building1: string;
@@ -29,7 +31,9 @@ type BuildingData = {
 type FormData = BuildingData | ClassItem | null;
 
 export default function TeacherPage() {
-  const { authorized, loading } = useAuthGuard("teacher");
+  const dispatch = useAppDispatch();
+  const loading = useAppSelector((state: RootState) => state.auth.loading);
+  // const user = useAppSelector((state: RootState) => state.auth.user);
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "row">("card");
 
@@ -42,6 +46,10 @@ export default function TeacherPage() {
   const [isTransferModal,setIsTransferModal] = useState(false);
   const [isopenPreEndModal,setIsopenPreEndModal] = useState(false);
   const [isopenEndModal,setIsopenEndModal] = useState(false);
+
+  useEffect(() => {
+    dispatch(fetchUser());
+  }, [dispatch]);
 
   const toggleDropdown = (index: number) => {
     setDropdownOpenIndex(dropdownOpenIndex === index ? null : index);
@@ -84,11 +92,9 @@ export default function TeacherPage() {
     audio.play();
   }
 
-  if (loading) return <LoadingPage/>;
-  if (!authorized) return null;
-
   return (
     <>
+      {loading && <LoadingPage/>}
       <div className="pb-15 sm:px-4 sm:pb-0">
         <p className="text-gray-600">Welcome back, teacher.</p>
         <h1 className="text-3xl font-bold mb-4">Teacher Dashboard</h1>
