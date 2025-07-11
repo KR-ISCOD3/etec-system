@@ -94,7 +94,7 @@ export default function TeacherPage() {
 
   return (
     <>
-      {loading && <LoadingPage/>}
+      {/* {loading && <LoadingPage/>} */}
       <div className="pb-15 sm:px-4 sm:pb-0">
         <p className="text-gray-600">Welcome back, teacher.</p>
         <h1 className="text-3xl font-bold mb-4">Teacher Dashboard</h1>

@@ -1,11 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { API_BASE_URL } from '../../api/config';  // Adjust path accordingly
+import { API_BASE_URL } from '../../api/config'; // Adjust path if needed
 
 interface User {
   id: number;
   email: string;
   role: string;
-  // add more user fields if needed
 }
 
 interface AuthState {
@@ -19,11 +18,16 @@ interface LoginPayload {
   password: string;
 }
 
+// Utility function for error handling
+function extractErrorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : "An unknown error occurred";
+}
+
 // Async thunk: login
 export const login = createAsyncThunk<
-  void, // no data needed on success, backend sets cookie
-  LoginPayload,
-  { rejectValue: string }
+  void, // return type
+  LoginPayload, // argument type
+  { rejectValue: string } // thunkAPI type
 >('auth/login', async ({ identifier, password }, { rejectWithValue }) => {
   try {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
@@ -37,8 +41,8 @@ export const login = createAsyncThunk<
       const data = await res.json();
       return rejectWithValue(data.message || 'Login failed');
     }
-  } catch (err: any) {
-    return rejectWithValue(err.message);
+  } catch (err: unknown) {
+    return rejectWithValue(extractErrorMessage(err));
   }
 });
 
@@ -52,23 +56,36 @@ export const fetchUser = createAsyncThunk<
     const res = await fetch(`${API_BASE_URL}/protected`, {
       credentials: 'include',
     });
+
     if (!res.ok) {
       return rejectWithValue('Not authenticated');
     }
+
     const data = await res.json();
     return data.user as User;
-  } catch (err: any) {
-    return rejectWithValue(err.message);
+  } catch (err: unknown) {
+    return rejectWithValue(extractErrorMessage(err));
   }
 });
 
 // Async thunk: logout
-export const logout = createAsyncThunk('auth/logout', async () => {
-  await fetch(`${API_BASE_URL}/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
-});
+export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        return rejectWithValue('Logout failed');
+      }
+    } catch (err: unknown) {
+      return rejectWithValue(extractErrorMessage(err));
+    }
+  }
+);
 
 const initialState: AuthState = {
   user: null,
@@ -80,7 +97,6 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // optional: clear error state
     clearError(state) {
       state.error = null;
     },
@@ -100,6 +116,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Login failed';
       })
+
       // fetchUser
       .addCase(fetchUser.pending, (state) => {
         state.loading = true;
@@ -115,15 +132,23 @@ const authSlice = createSlice({
         state.user = null;
         state.error = action.payload ?? 'Failed to fetch user';
       })
+
       // logout
+      .addCase(logout.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.loading = false;
         state.error = null;
+      })
+      .addCase(logout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Logout failed';
       });
   },
 });
 
 export const { clearError } = authSlice.actions;
-
 export default authSlice.reducer;

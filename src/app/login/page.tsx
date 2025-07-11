@@ -54,9 +54,9 @@ export default function Page() {
     }
   };
   
-
   return (
     <div>
+      <ToastContainer/>
       <main className="w-full h-[100vh] bg-gray-200 grid place-content-center">
         {loading && <LoadingPage/>}
         <div className="mx-auto w-[95%] sm:w-[480px] lg:w-[500px] text-center">
