@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../../api/config'; // Adjust path if needed
 
 interface User {
   id: number;
+  name?: string;
   email: string;
   role: string;
 }
@@ -62,6 +63,7 @@ export const fetchUser = createAsyncThunk<
     }
 
     const data = await res.json();
+    console.log(data);
     return data.user as User;
   } catch (err: unknown) {
     return rejectWithValue(extractErrorMessage(err));

@@ -1,7 +1,9 @@
+'use client'
 import { FaBell } from "react-icons/fa";
-
+import { useAppSelector } from "@/store/hooks";
 
 export default function Header() {
+  const user = useAppSelector((state)=>state.auth.user);
   return (
     <header className="bg-white shadow-sm px-4 sm:px-6 py-3 flex justify-between items-center w-full sticky top-0 z-50">
       {/* Left: Search */}
@@ -31,8 +33,9 @@ export default function Header() {
         <div className="flex items-center bg-gray-100 px-3 py-1 rounded-full gap-2">
           
           <div className="text-sm hidden lg:block">
-            <p className="font-medium">Wiliam</p>
-            <p className="text-xs text-gray-500">Super Admin</p>
+            <p className="font-medium">{user?.name || "Guest"}
+            </p>
+            <p className="text-xs text-gray-500">{user?.role || "Unknown Role"}</p>
           </div>
         </div>
       </div>

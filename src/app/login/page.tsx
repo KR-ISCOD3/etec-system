@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import Image from "next/image";
 import { useAppDispatch } from "@/store/hooks";
@@ -18,6 +18,26 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const user = await dispatch(fetchUser()).unwrap();
+        if (user?.role === "director") {
+          router.replace("/dashboard/director");
+        } else if (user?.role === "instructor") {
+          router.replace("/dashboard/teacher");
+        } else {
+          router.replace("/dashboard");
+        }
+      } catch (err: unknown) {
+        console.error(err);       
+      }
+    };
+  
+    checkUser();
+  }, []);
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
