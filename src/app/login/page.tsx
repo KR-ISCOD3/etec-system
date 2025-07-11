@@ -44,8 +44,9 @@ export default function Page() {
       } else {
         router.replace("/dashboard");
       }
-    } catch (err: any) {
-      toast.error(err || "Login failed", {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Login failed";
+      toast.error(message, {
         position: "top-right",
         theme: "colored",
       });
