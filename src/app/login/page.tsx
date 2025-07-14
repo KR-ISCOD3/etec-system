@@ -18,7 +18,6 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const loading = useAppSelector((state) => state.auth.loading);
-  const error = useAppSelector((state)=>state.auth.error)
 
   useEffect(() => {
     const checkUser = async () => {
@@ -34,7 +33,7 @@ export default function Page() {
         }
 
       } catch (err: unknown) {
-        console.warn(error);     
+        console.warn(err);     
       }
     };
   
