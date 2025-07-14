@@ -19,10 +19,38 @@ interface LoginPayload {
   password: string;
 }
 
+interface RegisterPayload {
+  fullname_en: string;
+  email: string;
+  password: string;
+}
 // Utility function for error handling
 function extractErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : "An unknown error occurred";
 }
+
+export const register = createAsyncThunk<
+  void, // return type
+  RegisterPayload, // argument type
+  { rejectValue: string } // thunkAPI config
+>('auth/register', async ({ email, fullname_en, password }, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ fullname_en, email,  password }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      return rejectWithValue(data.message || 'Registration failed');
+    }
+  } catch (err: unknown) {
+    return rejectWithValue(extractErrorMessage(err));
+  }
+});
+
 
 // Async thunk: login
 export const login = createAsyncThunk<
@@ -148,6 +176,19 @@ const authSlice = createSlice({
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload ?? 'Logout failed';
+      })
+      // register
+      .addCase(register.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(register.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(register.rejected, (state, action) => {
+        state.loading = false; 
+        state.error = action.payload ?? 'Registration failed';
       });
   },
 });

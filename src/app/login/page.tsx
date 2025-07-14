@@ -5,7 +5,7 @@ import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import Image from "next/image";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { login, fetchUser } from "@/store/auth/authSlice";
 import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/Loading";
@@ -17,21 +17,24 @@ export default function Page() {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const loading = useAppSelector((state) => state.auth.loading);
+  const error = useAppSelector((state)=>state.auth.error)
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const user = await dispatch(fetchUser()).unwrap();
+        
         if (user?.role === "director") {
-          router.replace("/dashboard/director");
+          router.push("/dashboard/director");
         } else if (user?.role === "instructor") {
-          router.replace("/dashboard/teacher");
+          router.push("/dashboard/teacher");
         } else {
-          router.replace("/dashboard");
+          router.push("/dashboard");
         }
+
       } catch (err: unknown) {
-        console.error(err);       
+        console.warn(error);     
       }
     };
   
@@ -51,7 +54,7 @@ export default function Page() {
     }
   
     try {
-      setLoading(true);
+      // setLoading(true);
   
       await dispatch(login({ identifier: usernameOrEmail, password })).unwrap();
   
@@ -70,9 +73,7 @@ export default function Page() {
         position: "top-right",
         theme: "colored",
       });
-    } finally {
-      setLoading(false);
-    }
+    } 
   };
   
   return (

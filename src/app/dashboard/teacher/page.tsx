@@ -19,9 +19,10 @@ import { topStudents } from "@/app/data/topstudents";
 // import LoadingPage from "@/components/Loading";
 import Modal from "@/components/Modal";
 import Link from "next/link";
-import { useAppDispatch } from "@/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 // import { RootState } from "@/store/store";
 import { fetchUser } from "@/store/auth/authSlice";
+import { RootState } from "@/store/store";
 
 type BuildingData = {
   building1: string;
@@ -33,7 +34,7 @@ type FormData = BuildingData | ClassItem | null;
 export default function TeacherPage() {
   const dispatch = useAppDispatch();
   // const loading = useAppSelector((state: RootState) => state.auth.loading);
-  // const user = useAppSelector((state: RootState) => state.auth.user);
+  const user = useAppSelector((state: RootState) => state.auth.user);
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "row">("card");
 
@@ -96,7 +97,7 @@ export default function TeacherPage() {
     <>
       
       <div className="pb-15 sm:px-4 sm:pb-0">
-        <p className="text-gray-600">Welcome back, teacher.</p>
+        <p className="text-gray-600">Welcome back, {user?.name}.</p>
         <h1 className="text-3xl font-bold mb-4">Teacher Dashboard</h1>
 
         {/* Summary Cards */}
