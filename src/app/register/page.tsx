@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Link from "next/link";
 import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,11 +10,13 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { register, fetchUser } from "@/store/auth/authSlice";
 import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/Loading";
+import RoutePrefetcher from "@/components/RoutePrefetcher";
 
 export default function RegisterPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const { loading } = useAppSelector((state) => state.auth);
+  const user = useAppSelector((state)=> state.auth.user)
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,6 +24,18 @@ export default function RegisterPage() {
     fullname_en: '',
     password: ''
   });
+
+  useEffect(() => {
+    if (!user) return;
+  
+    if (user.role === "director") {
+      router.push("/dashboard/director");
+    } else if (user.role === "instructor") {
+      router.push("/dashboard/teacher");
+    } else {
+      router.push("/dashboard");
+    }
+  }, [user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -65,6 +79,7 @@ export default function RegisterPage() {
   return (
     <div className="w-full min-h-screen bg-gray-200 grid place-content-center p-4">
       {loading && <LoadingPage/>}
+      <RoutePrefetcher routes={["/dashboard/director", "/dashboard/teacher", "/dashboard"]} />
       <ToastContainer />
       <div className="w-full sm:w-[800px] lg:w-[600px] rounded-xl p-8 ">
         <div className="w-[140px] h-[140px] mx-auto mb-4 overflow-hidden">
@@ -140,9 +155,9 @@ export default function RegisterPage() {
           </div>
 
           <button
+            disabled={loading}
             type="submit"
             className="cursor-pointer w-full p-3 bg-blue-950 mt-2 rounded-lg text-white text-xl hover:bg-blue-900 transition duration-300 active:scale-95 shadow-md hover:shadow-lg"
-            disabled={loading}
           >
             {loading ? "Registering..." : "Register"}
           </button>

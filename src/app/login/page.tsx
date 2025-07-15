@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { login, fetchUser } from "@/store/auth/authSlice";
 import { useRouter } from "next/navigation";
 import LoadingPage from "@/components/Loading";
+import RoutePrefetcher from "@/components/RoutePrefetcher";
 
 export default function Page() {
   const dispatch = useAppDispatch();
@@ -18,27 +19,19 @@ export default function Page() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const loading = useAppSelector((state) => state.auth.loading);
+  const user = useAppSelector((state)=> state.auth.user)
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const user = await dispatch(fetchUser()).unwrap();
-        
-        if (user?.role === "director") {
-          router.push("/dashboard/director");
-        } else if (user?.role === "instructor") {
-          router.push("/dashboard/teacher");
-        } else {
-          router.push("/dashboard");
-        }
-
-      } catch (err: unknown) {
-        console.warn(err);     
-      }
-    };
+    if (!user) return;
   
-    checkUser();
-  }, []);
+    if (user.role === "director") {
+      router.push("/dashboard/director");
+    } else if (user.role === "instructor") {
+      router.push("/dashboard/teacher");
+    } else {
+      router.push("/dashboard");
+    }
+  }, [user]);
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,6 +71,7 @@ export default function Page() {
   return (
     <div>
       <ToastContainer/>
+      <RoutePrefetcher routes={["/dashboard/director", "/dashboard/teacher", "/dashboard"]} />
       <main className="w-full h-[100vh] bg-gray-200 grid place-content-center">
         {loading && <LoadingPage/>}
         <div className="mx-auto w-[95%] sm:w-[480px] lg:w-[500px] text-center">

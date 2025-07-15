@@ -24,12 +24,18 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchUser } from "@/store/auth/authSlice";
 import { RootState } from "@/store/store";
 
-type BuildingData = {
-  building1: string;
-  building2: string;
-  building3: string;
+// ✅ Replace with this:
+type ClassFormData = {
+  course: string;
+  class_status: string;
+  branch: string;
+  room: string;
+  term: string;
+  time: string;
+  lesson: string;
 };
-type FormData = BuildingData | ClassItem | null;
+
+type FormData = ClassFormData | null;
 
 export default function TeacherPage() {
   const dispatch = useAppDispatch();
@@ -59,16 +65,32 @@ export default function TeacherPage() {
   const openAddModal = (): void => {
     setMode("add");
     setFormData({
-      building1: "",
-      building2: "",
-      building3: "",
+      course: "",
+      class_status: "",
+      branch: "",
+      room: "",
+      term: "",
+      time: "",
+      lesson: "",
     });
     setIsModalOpen(true);
   };
   
   const openUpdateModal = (cls: ClassItem) => {
     setMode("update");
-    setFormData(cls);
+  
+    // Convert ClassItem → ClassFormData
+    const formValues: ClassFormData = {
+      course: cls.title,
+      class_status: cls.status,
+      branch: cls.location.split(" - ")[0] || "", // safely handle missing room
+      room: cls.location.split(" - ")[1] || "",
+      term: "", // or default value if applicable
+      time: "", // or default value if applicable
+      lesson: cls.lesson,
+    };
+  
+    setFormData(formValues);
     setIsModalOpen(true);
   };
 
@@ -222,7 +244,7 @@ export default function TeacherPage() {
                               </tbody>
                             </table>
       
-                            <Link href={"/dashboard/teacher/viewclass"}>
+                            <Link href={"/dashboard/teacher/viewclass"} prefetch={false}>
                               <button className="w-full mt-3 p-2 bg-blue-950 text-white rounded-md text-lg hover:bg-blue-900 cursor-pointer">
                                 View Class 
                               </button>
@@ -293,94 +315,143 @@ export default function TeacherPage() {
       </div>
 
       {/* add and update class modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={mode === "add" ? "Add New Class" : "Update Class"}>
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={mode === "add" ? "Add New Class" : "Update Class"}
+      >
         <form className="space-y-4 mt-2">
-          {/* your data */}
+          {/* Courses and Status */}
           <div className="flex flex-wrap justify-between gap-3">
             <div className="w-full sm:w-[49%] relative">
-              <label htmlFor="building1" className="block mb-1 font-medium text-gray-700">
-                Select Tittle
-              </label>
-
+              <label className="block mb-1 font-medium text-gray-700">Courses</label>
               <select
-                name="building1"
-                value=""
-                onChange={(e) => setFormData(formData ? { ...formData, title: e.target.value } : null)}
+                value={formData?.course || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, course: e.target.value })
+                }
                 className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               >
-                <option value="">Select Item</option>
-                <option value="">Item 1</option>
-                <option value="">Item 2</option>
-                <option value="">Item 3</option>
-                {/* Add options here */}
+                <option value="">Select Courses</option>
+                <option value="Web Frontend">Web Frontend</option>
+                <option value="Web Backend">Web Backend</option>
+                <option value="Mobile App">Mobile App</option>
               </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform  text-gray-600" />
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
             </div>
 
             <div className="w-full sm:w-[49%] relative">
-              <label htmlFor="building1" className="block mb-1 font-medium text-gray-700">
-                Select Tittle
-              </label>
-
+              <label className="block mb-1 font-medium text-gray-700">Status Classes</label>
               <select
-                name="building1"
-                id="building1"
+                value={formData?.class_status || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, class_status: e.target.value })
+                }
                 className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               >
-                <option value="">Select Item</option>
-                <option value="">Item 1</option>
-                <option value="">Item 2</option>
-                <option value="">Item 3</option>
-                {/* Add options here */}
+                <option value="">Select Status</option>
+                <option value="Online">Online</option>
+                <option value="Physical">Physical</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Scholarship">Scholarship</option>
+                <option value="Class-Free" className="text-green-600">Class-Free</option>
               </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform  text-gray-600" />
-            </div>
-          </div>
-          {/* your data */}      
-          <div className="flex flex-wrap justify-between gap-3">
-            <div className="w-full sm:w-[49%] relative">
-              <label htmlFor="building1" className="block mb-1 font-medium text-gray-700">
-                Select Tittle
-              </label>
-
-              <select
-                name="building1"
-                id="building1"
-                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
-              >
-                <option value="">Select Item</option>
-                <option value="">Item 1</option>
-                <option value="">Item 2</option>
-                <option value="">Item 3</option>
-                {/* Add options here */}
-              </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform  text-gray-600" />
-            </div>
-
-            <div className="w-full sm:w-[49%] relative">
-              <label htmlFor="building1" className="block mb-1 font-medium text-gray-700">
-                Select Tittle
-              </label>
-
-              <select
-                name="building1"
-                id="building1"
-                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
-              >
-                <option value="">Select Item</option>
-                <option value="">Item 1</option>
-                <option value="">Item 2</option>
-                <option value="">Item 3</option>
-                {/* Add options here */}
-              </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform  text-gray-600" />
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
             </div>
           </div>
 
+          {/* Branch and Room */}
+          <div className="flex flex-wrap justify-between gap-3">
+            <div className="w-full sm:w-[49%] relative">
+              <label className="block mb-1 font-medium text-gray-700">Branch (សាខា)</label>
+              <select
+                value={formData?.branch || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, branch: e.target.value })
+                }
+                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+              >
+                <option value="">Select Branches</option>
+                <option value="ETEC 1">ETEC 1</option>
+                <option value="ETEC 2">ETEC 2</option>
+                <option value="ETEC 3">ETEC 3</option>
+              </select>
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
+            </div>
+
+            <div className="w-full sm:w-[49%] relative">
+              <label className="block mb-1 font-medium text-gray-700">Room</label>
+              <select
+                value={formData?.room || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, room: e.target.value })
+                }
+                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+              >
+                <option value="">Select Room</option>
+                <option value="E001">E001</option>
+                <option value="E002">E002</option>
+                <option value="E003">E003</option>
+                <option value="" disabled>Rest Room for Online</option>
+              </select>
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
+            </div>
+          </div>
+
+          {/* Term and Time */}
+          <div className="flex flex-wrap justify-between gap-3">
+            <div className="w-full sm:w-[49%] relative">
+              <label className="block mb-1 font-medium text-gray-700">Term</label>
+              <select
+                value={formData?.term || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, term: e.target.value })
+                }
+                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+              >
+                <option value="">Select Term</option>
+                <option value="Mon-Thu">Mon-Thu</option>
+                <option value="Sat-Sun">Sat-Sun</option>
+                <option value="Friday" disabled>Friday</option>
+                <option value="Mon-Wed" disabled>Mon-Wed</option>
+              </select>
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
+            </div>
+
+            <div className="w-full sm:w-[49%] relative">
+              <label className="block mb-1 font-medium text-gray-700">Time</label>
+              <select
+                value={formData?.time || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, time: e.target.value })
+                }
+                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+              >
+                <option value="">Select Time</option>
+                <option value="09:00(AM) - 10:30(AM)">09:00(AM) - 10:30(AM)</option>
+                <option value="11:00(AM) - 12:15(PM)">11:00(AM) - 12:15(PM)</option>
+              </select>
+              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
+            </div>
+          </div>
+
+          {/* Lesson */}
+          <div className="flex flex-wrap justify-between gap-3">
+            <div className="w-full">
+              <label className="block mb-1 font-medium text-gray-700">Course Lesson</label>
+              <input
+                type="text"
+                value={formData?.lesson || ""}
+                onChange={(e) =>
+                  setFormData((prev) => prev && { ...prev, lesson: e.target.value })
+                }
+                placeholder="Lesson"
+                className="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
           <div className="modal-action pt-4 flex justify-end gap-2 border-t border-gray-300">
             <button
               type="button"
@@ -390,11 +461,12 @@ export default function TeacherPage() {
               Cancel
             </button>
             <button type="submit" className="btn btn-md bg-blue-950 text-white px-10">
-              {mode == "update" ? "Save Change" : "Save"}
+              {mode === "update" ? "Save Change" : "Save"}
             </button>
           </div>
         </form>
       </Modal>
+
 
       {/* modal Add student */}
       <Modal isOpen={isModalAddStuOpen} onClose={() => setIsModalAddStuOpen(false)} title="Add New Student">
