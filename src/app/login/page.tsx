@@ -53,11 +53,11 @@ export default function Page() {
       const user = await dispatch(fetchUser()).unwrap();
   
       if (user?.role === "director") {
-        router.replace("/dashboard/director");
+        router.push("/dashboard/director");
       } else if (user?.role === "instructor") {
-        router.replace("/dashboard/teacher");
+        router.push("/dashboard/teacher");
       } else {
-        router.replace("/dashboard");
+        router.push("/dashboard");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
@@ -71,9 +71,16 @@ export default function Page() {
   return (
     <div>
       <ToastContainer/>
-      <RoutePrefetcher routes={["/dashboard/director", "/dashboard/teacher", "/dashboard"]} />
+      {loading && <LoadingPage/>}
+
+      <RoutePrefetcher 
+        routes={
+        ["/dashboard/director", 
+        "/dashboard/teacher", 
+        "/dashboard"]
+      } />
+
       <main className="w-full h-[100vh] bg-gray-200 grid place-content-center">
-        {loading && <LoadingPage/>}
         <div className="mx-auto w-[95%] sm:w-[480px] lg:w-[500px] text-center">
           <div className="w-[170px] h-[170px] mx-auto rounded-lg mb-4 overflow-hidden relative">
             <Image

@@ -23,6 +23,8 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 // import { RootState } from "@/store/store";
 import { fetchUser } from "@/store/auth/authSlice";
 import { RootState } from "@/store/store";
+import { fetchCourses } from "@/store/feature/courseSlice";
+import { fetchBranches } from "@/store/feature/brenchSlice";
 
 // ✅ Replace with this:
 type ClassFormData = {
@@ -41,6 +43,13 @@ export default function TeacherPage() {
   const dispatch = useAppDispatch();
   // const loading = useAppSelector((state: RootState) => state.auth.loading);
   const user = useAppSelector((state: RootState) => state.auth.user);
+
+  const courses = useAppSelector((state: RootState) => state.courses.courses);
+  // const coursesLoading = useAppSelector((state: RootState) => state.courses.loading);
+  // const coursesError = useAppSelector((state: RootState) => state.courses.error);
+
+  const branches = useAppSelector((state: RootState) => state.branches.branches);
+
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "row">("card");
 
@@ -57,6 +66,14 @@ export default function TeacherPage() {
   useEffect(() => {
     dispatch(fetchUser());
   }, [dispatch]);
+  
+  useEffect(() => {
+    dispatch(fetchCourses());
+  }, [dispatch]);
+
+  useEffect(()=>{
+    dispatch(fetchBranches());
+  },[dispatch]);
 
   const toggleDropdown = (index: number) => {
     setDropdownOpenIndex(dropdownOpenIndex === index ? null : index);
@@ -333,12 +350,15 @@ export default function TeacherPage() {
                 className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               >
                 <option value="">Select Courses</option>
-                <option value="Web Frontend">Web Frontend</option>
-                <option value="Web Backend">Web Backend</option>
-                <option value="Mobile App">Mobile App</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.name}>
+                    {course.name}
+                  </option>
+                ))}
               </select>
               <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
             </div>
+
 
             <div className="w-full sm:w-[49%] relative">
               <label className="block mb-1 font-medium text-gray-700">Status Classes</label>
@@ -367,14 +387,16 @@ export default function TeacherPage() {
               <select
                 value={formData?.branch || ""}
                 onChange={(e) =>
-                  setFormData((prev) => prev && { ...prev, branch: e.target.value })
+                  setFormData((prev) => prev && { ...prev, course: e.target.value })
                 }
                 className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               >
                 <option value="">Select Branches</option>
-                <option value="ETEC 1">ETEC 1</option>
-                <option value="ETEC 2">ETEC 2</option>
-                <option value="ETEC 3">ETEC 3</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.branch_name}>
+                    {branch.branch_name}
+                  </option>
+                ))}
               </select>
               <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform text-gray-600" />
             </div>
