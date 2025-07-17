@@ -37,13 +37,11 @@ export const register = createAsyncThunk<
   { rejectValue: string }
 >('auth/register', async ({ email, fullname_en, password }, { rejectWithValue }) => {
   try {
-    const res = await axios.post(
+    await axios.post(
       `${API_BASE_URL}/auth/register`,
       { fullname_en, email, password },
       { withCredentials: true }
     );
-
-    // No need to check res.ok here — axios throws on error
   } catch (err: unknown) {
     const message =
       axios.isAxiosError(err) && err.response?.data?.message
@@ -59,7 +57,7 @@ export const login = createAsyncThunk<
   { rejectValue: string }
 >('auth/login', async ({ identifier, password }, { rejectWithValue }) => {
   try {
-    const res = await axios.post(
+    await axios.post(
       `${API_BASE_URL}/auth/login`,
       { identifier, password },
       { withCredentials: true }
