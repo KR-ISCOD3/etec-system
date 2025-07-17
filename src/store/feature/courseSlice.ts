@@ -14,7 +14,6 @@ interface CourseState {
   error: string | null;
 }
 
-// Async thunk using axios
 export const fetchCourses = createAsyncThunk<
   Course[],
   void,
@@ -25,11 +24,10 @@ export const fetchCourses = createAsyncThunk<
       withCredentials: true,
     });
     console.log("Fetched Courses Response:", response.data);
-    // Adjust if your API wraps the data differently
     return response.data.courses as Course[];
-
-  } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to fetch courses';
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : 'Failed to fetch courses';
     return rejectWithValue(message);
   }
 });
@@ -58,10 +56,13 @@ const courseSlice = createSlice({
         state.loading = false;
         state.courses = action.payload;
       })
-      .addCase(fetchCourses.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload ?? 'Failed to fetch courses';
-      });
+      .addCase(
+        fetchCourses.rejected,
+        (state, action: PayloadAction<string | undefined>) => {
+          state.loading = false;
+          state.error = action.payload ?? 'Failed to fetch courses';
+        }
+      );
   },
 });
 

@@ -24,14 +24,19 @@ export default function Page() {
   useEffect(() => {
     if (!user) return;
   
-    if (user.role === "director") {
-      router.push("/dashboard/director");
-    } else if (user.role === "instructor") {
-      router.push("/dashboard/teacher");
-    } else {
-      router.push("/dashboard");
-    }
-  }, [user]);
+    const redirectByRole = {
+      director: "/dashboard/director",
+      instructor: "/dashboard/teacher",
+      default: "/dashboard",
+    };
+  
+    // Use type assertion here to satisfy TS
+    const destination =
+      redirectByRole[user.role as keyof typeof redirectByRole] || redirectByRole.default;
+  
+    router.push(destination);
+  }, [user, router]);
+  
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,27 +51,34 @@ export default function Page() {
     }
   
     try {
-      // setLoading(true);
-  
+
       await dispatch(login({ identifier: usernameOrEmail, password })).unwrap();
-  
+
       const user = await dispatch(fetchUser()).unwrap();
   
-      if (user?.role === "director") {
-        router.push("/dashboard/director");
-      } else if (user?.role === "instructor") {
-        router.push("/dashboard/teacher");
-      } else {
-        router.push("/dashboard");
-      }
+      const redirectByRole = {
+        director: "/dashboard/director",
+        instructor: "/dashboard/teacher",
+        default: "/dashboard",
+      } as const;  // readonly keys
+      
+      type RoleKey = keyof typeof redirectByRole; // 'director' | 'instructor' | 'default'
+      
+      const role = user?.role as RoleKey;  // assert role type (you can validate)
+      
+      const destination = redirectByRole[role] ?? redirectByRole.default;
+  
+      router.replace(destination); // <-- use replace here
+  
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Login failed";
       toast.error(message, {
         position: "top-right",
         theme: "colored",
       });
-    } 
+    }
   };
+  
   
   return (
     <div>
@@ -151,7 +163,7 @@ export default function Page() {
 
             <p className="text-center text-xl mt-3">
               Don&apos;t have an account?
-              <Link href="/register" className="text-blue-800 font-bold">
+              <Link href="/register" prefetch={false} className="text-blue-800 font-bold">
                 &ensp;Please Register
               </Link>
             </p>

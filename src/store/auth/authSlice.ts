@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import axios from 'axios';
 import { API_BASE_URL } from '../../api/config'; // Adjust path if needed
 
 interface User {
@@ -24,95 +25,88 @@ interface RegisterPayload {
   email: string;
   password: string;
 }
+
 // Utility function for error handling
 function extractErrorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : "An unknown error occurred";
+  return err instanceof Error ? err.message : 'An unknown error occurred';
 }
 
 export const register = createAsyncThunk<
-  void, // return type
-  RegisterPayload, // argument type
-  { rejectValue: string } // thunkAPI config
+  void,
+  RegisterPayload,
+  { rejectValue: string }
 >('auth/register', async ({ email, fullname_en, password }, { rejectWithValue }) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ fullname_en, email,  password }),
-    });
+    const res = await axios.post(
+      `${API_BASE_URL}/auth/register`,
+      { fullname_en, email, password },
+      { withCredentials: true }
+    );
 
-    if (!res.ok) {
-      const data = await res.json();
-      return rejectWithValue(data.message || 'Registration failed');
-    }
+    // No need to check res.ok here — axios throws on error
   } catch (err: unknown) {
-    return rejectWithValue(extractErrorMessage(err));
+    const message =
+      axios.isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : extractErrorMessage(err);
+    return rejectWithValue(message);
   }
 });
 
-
-// Async thunk: login
 export const login = createAsyncThunk<
-  void, // return type
-  LoginPayload, // argument type
-  { rejectValue: string } // thunkAPI type
+  void,
+  LoginPayload,
+  { rejectValue: string }
 >('auth/login', async ({ identifier, password }, { rejectWithValue }) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include', // send cookies
-      body: JSON.stringify({ identifier, password }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json();
-      return rejectWithValue(data.message || 'Login failed');
-    }
+    const res = await axios.post(
+      `${API_BASE_URL}/auth/login`,
+      { identifier, password },
+      { withCredentials: true }
+    );
   } catch (err: unknown) {
-    return rejectWithValue(extractErrorMessage(err));
+    const message =
+      axios.isAxiosError(err) && err.response?.data?.message
+        ? err.response.data.message
+        : extractErrorMessage(err);
+    return rejectWithValue(message);
   }
 });
 
-// Async thunk: fetch user info
 export const fetchUser = createAsyncThunk<
   User,
   void,
   { rejectValue: string }
 >('auth/fetchUser', async (_, { rejectWithValue }) => {
   try {
-    const res = await fetch(`${API_BASE_URL}/protected`, {
-      credentials: 'include',
+    const res = await axios.get(`${API_BASE_URL}/protected`, {
+      withCredentials: true,
     });
-
-    if (!res.ok) {
-      return rejectWithValue('Not authenticated');
-    }
-
-    const data = await res.json();
-    console.log(data);
-    return data.user as User;
+    return res.data.user as User;
   } catch (err: unknown) {
-    return rejectWithValue(extractErrorMessage(err));
+    const message =
+      axios.isAxiosError(err) && err.response?.status === 401
+        ? 'Not authenticated'
+        : extractErrorMessage(err);
+    return rejectWithValue(message);
   }
 });
 
-// Async thunk: logout
 export const logout = createAsyncThunk<void, void, { rejectValue: string }>(
   'auth/logout',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!res.ok) {
-        return rejectWithValue('Logout failed');
-      }
+      await axios.post(
+        `${API_BASE_URL}/auth/logout`,
+        {},
+        { withCredentials: true }
+      );
     } catch (err: unknown) {
-      return rejectWithValue(extractErrorMessage(err));
+      const message =
+        axios.isAxiosError(err) && err.response?.data?.message
+          ? err.response.data.message
+          : extractErrorMessage(err);
+      return rejectWithValue(message);
     }
   }
 );
@@ -177,6 +171,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Logout failed';
       })
+
       // register
       .addCase(register.pending, (state) => {
         state.loading = true;
@@ -187,7 +182,7 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(register.rejected, (state, action) => {
-        state.loading = false; 
+        state.loading = false;
         state.error = action.payload ?? 'Registration failed';
       });
   },

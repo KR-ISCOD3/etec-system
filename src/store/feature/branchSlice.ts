@@ -16,22 +16,25 @@ interface BranchState {
 
 // Async thunk to fetch branches
 export const fetchBranches = createAsyncThunk<
-  Branch[],
-  void,
-  { rejectValue: string }
->('branches/fetchBranches', async (_, { rejectWithValue }) => {
-  try {
-    const response = await axios.get(`${API_BASE_URL}/data/branches`, {
-      withCredentials: true,
-    });
-    console.log("Fetched Branches Response:", response.data);
-    return response.data.branches as Branch[]; // adjust if your API response differs
-
-  } catch (error: any) {
-    const message = error.response?.data?.message || error.message || 'Failed to fetch branches';
-    return rejectWithValue(message);
+  Branch[],            // Return type of payload on success
+  void,                // Argument type
+  { rejectValue: string }  // Type for rejectWithValue payload
+>(
+  'branches/fetchBranches',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/data/branches`, {
+        withCredentials: true,
+      });
+      console.log("Fetched Branches Response:", response.data);
+      return response.data.branches as Branch[]; // adjust if your API response differs
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch branches';
+      return rejectWithValue(message);
+    }
   }
-});
+);
 
 const initialState: BranchState = {
   branches: [],
@@ -57,10 +60,14 @@ const branchSlice = createSlice({
         state.loading = false;
         state.branches = action.payload;
       })
-      .addCase(fetchBranches.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload ?? 'Failed to fetch branches';
-      });
+      // Explicitly type action for rejected case
+      .addCase(
+        fetchBranches.rejected,
+        (state, action: PayloadAction<string | undefined>) => {
+          state.loading = false;
+          state.error = action.payload ?? 'Failed to fetch branches';
+        }
+      );
   },
 });
 

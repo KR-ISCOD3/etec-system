@@ -1,6 +1,6 @@
 'use client';
 
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
@@ -15,27 +15,33 @@ import RoutePrefetcher from "@/components/RoutePrefetcher";
 export default function RegisterPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+
   const { loading } = useAppSelector((state) => state.auth);
-  const user = useAppSelector((state)=> state.auth.user)
+  const user = useAppSelector((state) => state.auth.user);
 
   const [showPassword, setShowPassword] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const [formData, setFormData] = useState({
     email: '',
     fullname_en: '',
     password: ''
   });
 
+  // Redirect logged in user immediately with replace (no back to register)
   useEffect(() => {
     if (!user) return;
-  
-    if (user.role === "director") {
-      router.push("/dashboard/director");
-    } else if (user.role === "instructor") {
-      router.push("/dashboard/teacher");
-    } else {
-      router.push("/dashboard");
-    }
-  }, [user]);
+
+    const redirectByRole = {
+      director: "/dashboard/director",
+      instructor: "/dashboard/teacher",
+      default: "/dashboard"
+    };
+    
+    const destination = redirectByRole[user.role as keyof typeof redirectByRole] || redirectByRole.default;    
+
+    router.replace(destination);
+  }, [user, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -54,20 +60,25 @@ export default function RegisterPage() {
     }
 
     try {
+      // Dispatch registration
       await dispatch(register(formData)).unwrap();
 
       // Fetch user after successful registration
       const user = await dispatch(fetchUser()).unwrap();
 
-      // Redirect based on role
-      if (user.role === "instructor") {
-        router.push("/dashboard/teacher");
-      } else if (user.role === "director") {
-        router.push("/dashboard/director");
-      } else {
-        router.push("/dashboard");
-      }
+      const redirectByRole = {
+        director: "/dashboard/director",
+        instructor: "/dashboard/teacher",
+        default: "/dashboard"
+      };
+      
+      const destination = redirectByRole[user.role as keyof typeof redirectByRole] || redirectByRole.default;      
+
+      setIsNavigating(true);
+      await router.push(destination);  // wait for navigation to complete
+      setIsNavigating(false);
     } catch (err) {
+      setIsNavigating(false);
       const message = err instanceof Error ? err.message : 'Registration failed';
       toast.error(message, {
         position: 'top-right',
@@ -78,10 +89,10 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full min-h-screen bg-gray-200 grid place-content-center p-4">
-      {loading && <LoadingPage/>}
+      {(loading || isNavigating) && <LoadingPage />}
       <RoutePrefetcher routes={["/dashboard/director", "/dashboard/teacher", "/dashboard"]} />
       <ToastContainer />
-      <div className="w-full sm:w-[800px] lg:w-[600px] rounded-xl p-8 ">
+      <div className="w-full sm:w-[800px] lg:w-[600px] rounded-xl p-8">
         <div className="w-[140px] h-[140px] mx-auto mb-4 overflow-hidden">
           <Image
             src="/image/eteclogo.png"
@@ -111,6 +122,7 @@ export default function RegisterPage() {
               placeholder="Full Name"
               value={formData.fullname_en}
               onChange={handleChange}
+              autoComplete="name"
             />
           </div>
 
@@ -125,6 +137,7 @@ export default function RegisterPage() {
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
+              autoComplete="email"
             />
           </div>
 
@@ -139,6 +152,7 @@ export default function RegisterPage() {
               placeholder="Password"
               value={formData.password}
               onChange={handleChange}
+              autoComplete="new-password"
             />
             <div
               className="absolute right-4 text-gray-500 cursor-pointer"
@@ -155,16 +169,16 @@ export default function RegisterPage() {
           </div>
 
           <button
-            disabled={loading}
+            disabled={loading || isNavigating}
             type="submit"
             className="cursor-pointer w-full p-3 bg-blue-950 mt-2 rounded-lg text-white text-xl hover:bg-blue-900 transition duration-300 active:scale-95 shadow-md hover:shadow-lg"
           >
-            {loading ? "Registering..." : "Register"}
+            {(loading || isNavigating) ? "Registering..." : "Register"}
           </button>
 
           <p className="text-center text-lg mt-3">
             Already have an account?
-            <Link href="/login" className="text-blue-800 font-bold ml-2">
+            <Link href="/login" prefetch={false} className="text-blue-800 font-bold ml-2">
               Login
             </Link>
           </p>
