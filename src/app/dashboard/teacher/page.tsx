@@ -67,8 +67,8 @@ export default function TeacherPage() {
   const classloading = useAppSelector((state)=>state.class.classloading);
   const classes = useAppSelector((state)=>state.class.classes);
 
-  const [showPreEnded, setShowPreEnded] = useState(false);
-  const [preEndedClasses, setPreEndedClasses] = useState<Class[]>([]);
+  // const [showPreEnded, setShowPreEnded] = useState(false);
+  // const [preEndedClasses, setPreEndedClasses] = useState<Class[]>([]);
 
   useEffect(() => {
     if (user === undefined) return; // or if loading user, wait
@@ -302,7 +302,7 @@ export default function TeacherPage() {
       await dispatch(fetchClassesByUserId(user?.id || 0));
       // const filtered = res.filter((cls: Class) => cls.isdeleted === 'enable' && cls.status === 'pre-end');
       // setPreEndedClasses(filtered);
-      setShowPreEnded(true);
+      // setShowPreEnded(true);
       toast.success("Class pre-end successfully!", {
         position: "bottom-right",
         theme: "colored"
@@ -310,6 +310,7 @@ export default function TeacherPage() {
     } catch (err) {
       toast.error("Failed to fetch pre-ended classes");
     }
+    setIsopenPreEndModal(false)
   };
   
 
