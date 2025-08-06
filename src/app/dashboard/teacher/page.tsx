@@ -1,35 +1,25 @@
 "use client";
-
-import { use, useEffect, useState } from "react";
-import {
-  FaUsers,
-  FaChalkboardTeacher,
-  FaCheckCircle,
-  FaList,
-  FaChevronDown,
-} from "react-icons/fa";
-import { FaHourglassHalf } from "react-icons/fa6";
+import { useEffect, useState } from "react";
+import { FaList,FaChevronDown,} from "react-icons/fa";
 import { MdWindow } from "react-icons/md";
-import { IoClose, IoHome } from "react-icons/io5";
-import { BsThreeDots } from "react-icons/bs";
-
-import DashboardCard from "@/components/DashboardCard";
-import { classData, ClassItem } from "@/app/data/classes";
-import { topStudents } from "@/app/data/topstudents";
-// import LoadingPage from "@/components/Loading";
 import Modal from "@/components/Modal";
-import Link from "next/link";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-// import { RootState } from "@/store/store";
 import { fetchUser } from "@/store/auth/authSlice";
 import { RootState } from "@/store/store";
 import { fetchCourses } from "@/store/feature/courseSlice";
 import { fetchBranches } from "@/store/feature/branchSlice";
 import { fetchRooms } from "@/store/feature/roomSlice";
-import { addClass, fetchClassesByUserId, updateClass } from "@/store/feature/classSlice";
+import { addClass, fetchClassesByUserId, preEndClass, softDeleteClass, updateClass } from "@/store/feature/classSlice";
 import timesByTerm from "@/app/data/timeByTerm";
 import type { Class } from "@/store/feature/classSlice";
 import { toast, ToastContainer } from "react-toastify";
+import SkeletonCardView from "@/components/SkeletonCardView";
+import SkeletonRowView from "@/components/SkeletonRowView";
+import ClassCard from "@/components/ClassCard";
+import { useRouter } from "next/navigation";
+import DashboardTeacher from "@/components/DashboardTeacher";
+import StudentTopScore from "@/components/StudentTopScore";
+import ClassRow from "@/components/ClassRow";
 
 // ✅ Replace with this:
 interface ClassFormData {
@@ -43,42 +33,62 @@ interface ClassFormData {
   lesson: string;
   term: string;
   time: string;
+  total_student?: number | null;
+  starting_date?: string;
+  isdeleted?: string; 
 }
 
 type FormData = ClassFormData | null;
-
 export default function TeacherPage() {
   const dispatch = useAppDispatch();
-  // const loading = useAppSelector((state: RootState) => state.auth.loading);
+  const router = useRouter();
+  
   const user = useAppSelector((state: RootState) => state.auth.user);
 
   const courses = useAppSelector((state: RootState) => state.courses.courses);
-  // const coursesLoading = useAppSelector((state: RootState) => state.courses.loading);
-  // const coursesError = useAppSelector((state: RootState) => state.courses.error);
 
   const branches = useAppSelector((state: RootState) => state.branches.branches);
   const rooms = useAppSelector((state: RootState)=> state.rooms.rooms);
 
-  // const [selectedTerm, setSelectedTerm] = useState("");
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-
-
-  const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(
-    null
-  );
+  const [dropdownOpenIndex, setDropdownOpenIndex] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<"card" | "row">("card");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [mode, setMode] = useState<"add" | "update">("add");
-
-  const [formData, setFormData] = useState<FormData | null>(null);
-
   const [isModalAddStuOpen, setIsModalAddStuOpen] = useState(false);
   const [isTransferModal, setIsTransferModal] = useState(false);
   const [isopenPreEndModal, setIsopenPreEndModal] = useState(false);
   const [isopenEndModal, setIsopenEndModal] = useState(false);
+
+  const [mode, setMode] = useState<"add" | "update">("add");
+  const [formData, setFormData] = useState<FormData | null>(null);
+  const [selectedClass, setSelectedClass] = useState<Class | null>(null);
+
   const classloading = useAppSelector((state)=>state.class.classloading);
   const classes = useAppSelector((state)=>state.class.classes);
+
+  const [showPreEnded, setShowPreEnded] = useState(false);
+  const [preEndedClasses, setPreEndedClasses] = useState<Class[]>([]);
+
+  useEffect(() => {
+    if (user === undefined) return; // or if loading user, wait
+  
+    if (!user) {
+      // No user means not logged in
+      router.push("/login");
+      return;
+    }
+  
+    const redirectByRole = {
+      director: "/dashboard/director",
+      instructor: "/dashboard/teacher",
+    };
+  
+    const destination = redirectByRole[user.role as keyof typeof redirectByRole] || "/login";
+  
+    router.push(destination);
+  }, [user, router]);
+  
 
   useEffect(() => {
     dispatch(fetchUser());
@@ -123,41 +133,40 @@ export default function TeacherPage() {
   };
 
   const openUpdateModal = (cls: Class) => {
-
     setMode("update");
   
     // Find course by title to get course_id (number)
-    const matchedCourse = courses.find(c => c.name === cls.title);
+    const matchedCourse = courses.find(c => c.name === cls.courses?.name);
     const course_id = matchedCourse ? matchedCourse.id : null;
   
-    // Parse location into branch name and room number
-    const [branchName = "", roomNumber = ""] = cls.location.split(" - ");
-  
-    // Find branch by name to get branch_id (number)
+    const branchName = cls.branches?.branch_name ?? "";
+    const roomName = cls.rooms?.room_number ?? "";
+    
     const matchedBranch = branches.find(b => b.branch_name === branchName);
     const branch_id = matchedBranch ? matchedBranch.id : null;
-  
-    // Find room by room_number and branch_id to get room_id (number)
-    const matchedRoom = rooms.find(r => r.room_number === roomNumber && r.branch_id === branch_id);
+    
+    const matchedRoom = rooms.find(r => r.room_number === roomName && r.branch_id === branch_id);
     const room_id = matchedRoom ? matchedRoom.id : null;
+    
+    // Prepare form data object
+    const formValues: ClassFormData = {
+      id: cls.id ?? null,
+      teacher_id: cls.teacher_id ?? null,
+      course_id,
+      branch_id,
+      room_id,
+      status: cls.status || "",
+      class_status: cls.class_status || "",
+      term: cls.term || "",
+      time: cls.time || "",
+      lesson: cls.lesson || "",
+      starting_date: ""
+    };
   
-    // Now prepare form data with numbers
-    // const formValues: ClassFormData = {
-    //   id: cls.id ?? 0,
-    //   course_id: course_id ?? 0,
-    //   class_status: cls.status || "",
-    //   branch_id: branch_id ?? 0,
-    //   room_id: room_id ?? null,
-    //   term: "",  // fill if you have value
-    //   time: "",  // fill if you have value
-    //   lesson: cls.lesson || "",
-    // };
-  
-    // setFormData(formValues);
+    setFormData(formValues);
     setIsModalOpen(true);
   };
   
-
   const openAddStudentModal = () => {
     setIsModalAddStuOpen(true);
   };
@@ -166,18 +175,21 @@ export default function TeacherPage() {
     setIsTransferModal(true);
   };
 
-  const openPreEndModal = () => {
+  const openPreEndModal = (cls: Class) => {
+    setSelectedClass(cls); // store the selected class
     setIsopenPreEndModal(true);
   };
-
-  const openEndModal = () => {
+  
+  const openEndModal = (cls: Class) => {
+    setSelectedClass(cls);
     setIsopenEndModal(true);
   };
 
-  function playClickSound() {
-    const audio = new Audio("/sound/ILOVEU.mp3"); // path to your audio file
-    audio.play();
-  }
+  // function playClickSound() {
+  //   const audio = new Audio("/sound/ILOVEU.mp3"); // path to your audio file
+  //   audio.play();
+  // }
+
   const filteredRooms = rooms.filter(
     (room) => room.branch_id === Number(formData?.branch_id)
   );
@@ -189,15 +201,15 @@ export default function TeacherPage() {
       setAvailableTimes([]);
     }
   }, [formData?.term]);
-  
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+  
     if (!formData) return;
   
     const submissionData: Omit<Class, "id" | "isdeleted"> = {
-      teacher_id: Number(user?.id) || 1,
+      teacher_id: Number(user?.id) ?? 0,
       room_id:
         formData.class_status === "Online"
           ? null
@@ -211,28 +223,31 @@ export default function TeacherPage() {
       term: formData.term || "",
       time: formData.time || "",
     };
-  
-    console.log("submissionData details:", submissionData);
-  
+
     try {
       if (mode === "add") {
         await dispatch(addClass(submissionData)).unwrap();
+        await dispatch(fetchClassesByUserId(user?.id || 0));
         toast.success("Class added successfully!", {
           position: "bottom-right",
+          theme: "colored"
         });
       } else if (formData.id) {
-        await dispatch(updateClass({
-          id: formData.id,
-          data: submissionData,
-        })).unwrap();
+        await dispatch(
+          updateClass({
+            id: formData.id,
+            data: submissionData,
+          })
+        ).unwrap();
+        await dispatch(fetchClassesByUserId(user?.id || 0));
         toast.success("Class updated successfully!", {
           position: "bottom-right",
+          theme: "colored"
         });
       }
   
       setIsModalOpen(false);
     } catch (error: unknown) {
-      // Type-safe way to access error.message
       let message = "Something went wrong!";
       if (
         typeof error === "object" &&
@@ -249,7 +264,57 @@ export default function TeacherPage() {
     }
   };
 
-  console.table(classes);
+
+  const endClass = async () => {
+    
+    if (!selectedClass?.id){console.log("No ID"); return};
+  
+    try {
+      await dispatch(softDeleteClass(selectedClass.id)).unwrap();
+      await dispatch(fetchClassesByUserId(user?.id || 0));
+      toast.success("Class ended successfully!", {
+        position: "bottom-right",
+        theme: "colored",
+      });
+      setIsopenEndModal(false);
+    } catch (error: unknown) {
+      let message = "Failed to end class.";
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "message" in error &&
+        typeof (error as any).message === "string"
+      ) {
+        message = (error as any).message;
+      }
+  
+      toast.error(message, {
+        position: "bottom-right",
+      });
+    }
+  };
+  
+  const preEnded = async () => {
+    if (!selectedClass?.id) return;
+    console.log(selectedClass?.id);
+    try {
+      await dispatch(preEndClass(selectedClass.id)).unwrap(); // You can also create `fetchPreEndedClasses` thunk
+      await dispatch(fetchClassesByUserId(user?.id || 0));
+      // const filtered = res.filter((cls: Class) => cls.isdeleted === 'enable' && cls.status === 'pre-end');
+      // setPreEndedClasses(filtered);
+      setShowPreEnded(true);
+      toast.success("Class pre-end successfully!", {
+        position: "bottom-right",
+        theme: "colored"
+      });
+    } catch (err) {
+      toast.error("Failed to fetch pre-ended classes");
+    }
+  };
+  
+
+  const visibleClasses:Class[] = classes.filter(cls => cls.isdeleted !== 'enable');
+  
   
   return (
     <>
@@ -259,91 +324,14 @@ export default function TeacherPage() {
         <h1 className="text-3xl font-bold mb-4">Teacher Dashboard</h1>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <DashboardCard
-            icon={<FaChalkboardTeacher />}
-            title="total classes"
-            value={6}
-            change="+1"
-            changeLabel="this month"
-            iconColor="text-blue-800"
-            valueColor="text-blue-700"
-            changeColor="text-green-500"
-          />
-          <DashboardCard
-            icon={<FaUsers />}
-            title="total students"
-            value={135}
-            change="+5"
-            changeLabel="this month"
-            iconColor="text-teal-800"
-            valueColor="text-teal-700"
-            changeColor="text-blue-500"
-          />
-          <DashboardCard
-            icon={<FaHourglassHalf />}
-            title="progress classes"
-            value={4}
-            change="+1"
-            changeLabel="this week"
-            iconColor="text-yellow-700"
-            valueColor="text-yellow-600"
-            changeColor="text-orange-500"
-          />
-          <DashboardCard
-            icon={<FaCheckCircle />}
-            title="end classes"
-            value={2}
-            change="0"
-            changeLabel="this week"
-            iconColor="text-green-800"
-            valueColor="text-green-700"
-            changeColor="text-gray-500"
-          />
-        </div>
+        <DashboardTeacher/>
 
         {/* Classes and Top Score */}
         <div className="mt-8 flex flex-col lg:flex-row gap-6">
+          
           {/* Left Side: Top Score */}
-          <div className="lg:w-[35%] bg-white p-4 rounded-lg shadow-sm max-h-auto overflow-y-auto">
-            <h2 className="text-xl font-bold mb-3">Top Score Student</h2>
-            <div className="max-h-[470px] overflow-y-auto">
-              <table className="w-full">
-                <tbody>
-                  {topStudents.map((student) => (
-                    <tr
-                      key={student.id}
-                      className="border-b border-gray-200 hover:bg-gray-100"
-                    >
-                      <td className="px-3 py-3">
-                        <p className="text-xl font-bold">{student.name}</p>
-                        <p>
-                          tel:{" "}
-                          <span className="text-green-600">{student.tel}</span>
-                        </p>
-                      </td>
-                      <td className="px-3 py-2 hidden md:table-cell">
-                        <p>
-                          Class:{" "}
-                          <span className="font-bold">{student.course}</span>
-                        </p>
-                        <p>
-                          Time :{" "}
-                          <span className="text-red-500">2:00 - 3:15</span>
-                        </p>
-                      </td>
-                      <td>
-                        Score:{" "}
-                        <span className="px-3 py-2 font-semibold text-blue-900">
-                          {student.score}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <StudentTopScore/>
+        
 
           {/* Right Side: Class List */}
           <div className="lg:w-[65%] bg-white p-4 rounded-lg shadow-sm">
@@ -379,109 +367,30 @@ export default function TeacherPage() {
 
             
             <div className="max-h-[470px] overflow-y-auto">
-              {viewMode === 'card' ? (
+            {
+              classloading ? (
+                viewMode === 'card' ? (
+                  <SkeletonCardView />
+                ) : (
+                  <SkeletonRowView />
+                )
+              ) : visibleClasses.length === 0 ? (
+                <div className="text-center text-gray-500 text-lg py-10">No classes found.</div>
+              ) : viewMode === 'card' ? (
                 <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 justify-between">
                   {classes.map((cls, index) => (
-                    <div
+                    <ClassCard
                       key={cls.id}
-                      className="w-full sm:w-[49%] border-2 border-blue-500 rounded-lg p-4 relative bg-white shadow-sm"
-                    >
-                      {/* Header */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <IoHome className="text-3xl text-blue-950" />
-                          <p className="font-bold text-lg">{cls.courses?.name /* or cls.title if you have it */}</p>
-                        </div>
-
-                        {/* Dropdown */}
-                        <div className="relative">
-                          <button
-                            onClick={() => toggleDropdown(index)}
-                            className="p-2 rounded-full hover:bg-gray-200 transition cursor-pointer overflow-hidden"
-                          >
-                            {dropdownOpenIndex === index ? <IoClose /> : <BsThreeDots />}
-                          </button>
-                          {dropdownOpenIndex === index && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                              <ul className="text-lg text-gray-700">
-                                <li
-                                  onClick={openAddStudentModal}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  Add Student
-                                </li>
-                                <li
-                                  onClick={() => openUpdateModal(cls)}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  Edit Class
-                                </li>
-                                <li
-                                  onClick={openTransferModal}
-                                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                >
-                                  Transfer
-                                </li>
-                                <li
-                                  onClick={openPreEndModal}
-                                  className="px-4 py-2 text-white bg-gray-500 hover:bg-gray-600 cursor-pointer"
-                                >
-                                  Pre-End
-                                </li>
-                                <li
-                                  onClick={openEndModal}
-                                  className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 cursor-pointer"
-                                >
-                                  End Class
-                                </li>
-                              </ul>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Class details */}
-                      <table className="w-full text-left border-collapse text-xl">
-                        <tbody>
-                          <tr className="border-b border-gray-300 ">
-                            <td className="text-lg sm:text-xl font-semibold w-1/2 py-2 text-gray-700">
-                              Lesson:
-                            </td>
-                            <td className=" text-gray-800 py-2 line-clamp-1">
-                              <div className="line-clamp-1 max-w-xs break-words">{cls.lesson}</div>
-                            </td>
-                          </tr>
-                          <tr className="border-b border-gray-300">
-                            <td className="text-lg sm:text-xl font-semibold py-2 text-gray-700">
-                              Total Students:
-                            </td>
-                            <td className=" text-blue-900 py-2 font-bold">{cls.total_student}</td>
-                          </tr>
-                          <tr className="border-b border-gray-300">
-                            <td className="text-lg sm:text-xl font-semibold py-2 text-gray-700">
-                              Location:
-                            </td>
-                            <td className=" text-gray-800 py-2">
-                              {cls.branches?.branch_name ?? 'N/A'}
-                              &emsp;
-                              <span className="text-amber-600 font-bold">{cls.rooms?.room_number ?? 'N/A'}</span>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td className="text-lg sm:text-xl font-semibold py-2 text-gray-700">
-                              Status:
-                            </td>
-                            <td className="py-2">{cls.class_status}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-
-                      <Link href="/dashboard/teacher/viewclass" prefetch={false}>
-                        <button className="w-full mt-3 p-2 bg-blue-950 text-white rounded-md text-lg hover:bg-blue-900 cursor-pointer">
-                          View Class
-                        </button>
-                      </Link>
-                    </div>
+                      cls={cls}
+                      index={index}
+                      dropdownOpenIndex={dropdownOpenIndex}
+                      toggleDropdown={toggleDropdown}
+                      openAddStudentModal={openAddStudentModal}
+                      openUpdateModal={openUpdateModal}
+                      openTransferModal={openTransferModal}
+                      openPreEndModal={()=>openPreEndModal(cls)}
+                      openEndModal={()=>openEndModal(cls)}
+                    />
                   ))}
                 </div>
               ) : (
@@ -491,84 +400,33 @@ export default function TeacherPage() {
                       <tr className="bg-blue-950 text-white text-left sticky top-0">
                         <th className="py-2 px-4">Title</th>
                         <th className="py-2 px-4">Lesson</th>
-                        <th className="py-2 px-4">Total Students</th>
+                        <th className="py-2 px-4 text-center">Total Students</th>
                         <th className="py-2 px-4 hidden sm:table-cell">Location</th>
                         <th className="py-2 px-4">Status</th>
                         <th className="py-2 px-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {classes.map((cls, index) => (
-                        <tr
+                      {visibleClasses.map((cls, index) => (
+                        <ClassRow
                           key={cls.id}
-                          className="border-b border-gray-300 hover:bg-gray-100"
-                        >
-                          <td className="py-3 px-4 flex items-center gap-2 font-bold text-blue-950">
-                            <IoHome className="text-2xl" />
-                            {cls.courses?.name /* or cls.title */}
-                          </td>
-                          <td className="py-3 px-4">{cls.lesson}</td>
-                          <td className="py-3 px-4 font-bold text-blue-900">
-                            {cls.total_student}
-                          </td>
-                          <td className="py-3 px-4 hidden sm:table-cell">
-                            {cls.branches?.branch_name ?? 'N/A'}
-                            &emsp;
-                            <span className="text-amber-600 font-bold">{cls.rooms?.room_number ?? 'N/A'}</span>
-                          </td>
-                          <td className="py-3 px-4">{cls.class_status}</td>
-                          <td className="py-3 px-4 relative">
-                            <button
-                              onClick={() => toggleDropdown(index)}
-                              className="p-2 rounded-full hover:bg-gray-200 transition cursor-pointer overflow-hidden"
-                            >
-                              {dropdownOpenIndex === index ? <IoClose /> : <BsThreeDots />}
-                            </button>
-                            {dropdownOpenIndex === index && (
-                              <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg z-10">
-                                <ul className="text-lg text-gray-700">
-                                  <li
-                                    onClick={openAddStudentModal}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    Add Student
-                                  </li>
-                                  <li
-                                    onClick={() => openUpdateModal(cls)}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    Edit Class
-                                  </li>
-                                  <li
-                                    onClick={openTransferModal}
-                                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                                  >
-                                    Transfer
-                                  </li>
-                                  <li
-                                    onClick={openPreEndModal}
-                                    className="px-4 py-2 text-white bg-gray-500 hover:bg-gray-600 cursor-pointer"
-                                  >
-                                    Pre-End
-                                  </li>
-                                  <li
-                                    onClick={openEndModal}
-                                    className="px-4 py-2 text-white bg-red-500 hover:bg-red-600 cursor-pointer"
-                                  >
-                                    End Class
-                                  </li>
-                                </ul>
-                              </div>
-                            )}
-                          </td>
-                        </tr>
+                          cls={cls}
+                          index={index}
+                          dropdownOpenIndex={dropdownOpenIndex}
+                          toggleDropdown={toggleDropdown}
+                          openAddStudentModal={openAddStudentModal}
+                          openUpdateModal={openUpdateModal}
+                          openTransferModal={openTransferModal}
+                          openPreEndModal={()=>openPreEndModal(cls)}
+                          openEndModal={()=>openEndModal(cls)}
+                        />
                       ))}
                     </tbody>
                   </table>
                 </div>
-              )}
-            </div>
-                       
+              )
+            }
+            </div>                 
           </div>
         </div>
       </div>
@@ -763,16 +621,13 @@ export default function TeacherPage() {
               </label>
               <input
                 type="text"
-                value={formData?.lesson || "Introduction"}
+                value={formData?.lesson || ""}
                 onChange={(e) =>
-                  setFormData(
-                    (prev) => prev && { ...prev, lesson: e.target.value }
-                  )
+                  setFormData((prev) => prev && { ...prev, lesson: e.target.value })
                 }
                 placeholder="Lesson"
                 className="w-full border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
               />
-
             </div>
           </div>
 
@@ -875,7 +730,7 @@ export default function TeacherPage() {
             </button>
             <button
               onClick={() => {
-                playClickSound();
+                // playClickSound();
                 // your save logic here, e.g. form submit or state update
               }}
               type="button"
@@ -925,7 +780,7 @@ export default function TeacherPage() {
             </button>
             <button
               onClick={() => {
-                playClickSound();
+                // playClickSound();
                 // your save logic here, e.g. form submit or state update
               }}
               type="button"
@@ -959,10 +814,7 @@ export default function TeacherPage() {
               No
             </button>
             <button
-              onClick={() => {
-                playClickSound();
-                // your save logic here, e.g. form submit or state update
-              }}
+              onClick={preEnded}
               type="button"
               className="btn btn-md btn-error text-white px-5"
             >
@@ -972,14 +824,13 @@ export default function TeacherPage() {
         </form>
       </Modal>
 
-      {/* end class */}
+     {/* end class */}
       <Modal
         isOpen={isopenEndModal}
         onClose={() => setIsopenEndModal(false)}
         title="End Class"
       >
-        <form className="space-y-4 mt-2">
-          {/* your data */}
+        <form className="space-y-4 mt-2" onSubmit={(e) => e.preventDefault()}>
           <p className="text-lg text-center">
             The session has been completed. Do you wish to{" "}
             <b>end the class now</b>?
@@ -994,18 +845,17 @@ export default function TeacherPage() {
               No
             </button>
             <button
-              onClick={() => {
-                playClickSound();
-                // your save logic here, e.g. form submit or state update
-              }}
               type="button"
               className="btn btn-md btn-error text-white px-5"
+              onClick={endClass}
+              disabled={classloading} // disable while loading (optional)
             >
               Yes
             </button>
           </div>
         </form>
       </Modal>
+
     </>
   );
 }

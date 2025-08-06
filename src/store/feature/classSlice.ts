@@ -18,7 +18,7 @@ export interface Course {
 }
 
 export interface Class {
-  id: number;
+  id: number | null;
   teacher_id: number;
   room_id: number | null;
   branch_id: number;
@@ -81,6 +81,8 @@ export const addClass = createAsyncThunk<
   }
 });
 
+
+
 // Update existing class
 export const updateClass = createAsyncThunk<
   Class,
@@ -99,21 +101,43 @@ export const updateClass = createAsyncThunk<
   }
 });
 
-// Soft delete class
+// Soft delete class by setting isdeleted = "enable"
 export const softDeleteClass = createAsyncThunk<
   Class,
   number,
   { rejectValue: string }
 >('classes/softDeleteClass', async (id, { rejectWithValue }) => {
   try {
-    const response = await axios.delete(`${API_BASE_URL}/instructor/class/${id}`, {
-      withCredentials: true,
-    });
+    const response = await axios.delete(
+      `${API_BASE_URL}/instructor/class/${id}`,
+      {
+        data: { isdeleted: 'enable' },
+        withCredentials: true,
+      }
+    );
     return response.data.data[0] as Class;
   } catch (error: unknown) {
     const message =
-      error instanceof Error ? error.message : 'Failed to delete class';
+      error instanceof Error ? error.message : 'Failed to soft delete class';
     return rejectWithValue(message);
+  }
+});
+
+// pre end class by setting isdeleted = "enable"
+export const preEndClass = createAsyncThunk<
+  Class,
+  number,
+  { rejectValue: string }
+>('classes/preEndClass', async (id, { rejectWithValue }) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/instructor/class/preEnd/${id}`,
+      { status: 'pre-end' }, // optional data
+      { withCredentials: true }
+    );
+    return response.data.data[0] as Class;
+  } catch (error: any) {
+    return rejectWithValue(error?.response?.data?.error || 'Failed to pre end class');
   }
 });
 
@@ -218,6 +242,23 @@ const classSlice = createSlice({
         state.classloading = false;
         state.error = action.payload ?? 'Failed to delete class';
       })
+      // preEndClass
+      .addCase(preEndClass.pending, (state) => {
+        state.classloading = true;
+        state.error = null;
+      })
+      .addCase(preEndClass.fulfilled, (state, action: PayloadAction<Class>) => {
+        state.classloading = false;
+        const index = state.classes.findIndex((c) => c.id === action.payload.id);
+        if (index !== -1) {
+          state.classes[index] = action.payload;
+        }
+      })
+      .addCase(preEndClass.rejected, (state, action) => {
+        state.classloading = false;
+        state.error = action.payload ?? 'Failed to pre end class';
+      })
+      
       // fetchClassesByUserId
       .addCase(fetchClassesByUserId.pending, (state) => {
         state.classloading = true;
