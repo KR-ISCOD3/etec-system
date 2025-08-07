@@ -2,6 +2,15 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { API_BASE_URL } from '../../api/config';
 
+type AxiosErrorResponse = {
+  response?: {
+    data?: {
+      error?: string;
+    };
+  };
+};
+
+
 export interface Room {
   id: number;
   room_number: string;
@@ -136,25 +145,10 @@ export const preEndClass = createAsyncThunk<
       { withCredentials: true }
     );
     return response.data.data[0] as Class;
-    
+
   }catch (error: unknown) {
-    let errorMessage = 'Failed to pre end class';
-  
-    if (
-      typeof error === 'object' &&
-      error !== null &&
-      'response' in error &&
-      typeof (error as any).response === 'object' &&
-      (error as any).response !== null &&
-      'data' in (error as any).response &&
-      typeof (error as any).response.data === 'object' &&
-      (error as any).response.data !== null &&
-      'error' in (error as any).response.data &&
-      typeof (error as any).response.data.error === 'string'
-    ) {
-      errorMessage = (error as any).response.data.error;
-    }
-  
+    const err = error as AxiosErrorResponse;
+    const errorMessage = err?.response?.data?.error ?? 'Failed to pre end class';
     return rejectWithValue(errorMessage);
   }
   

@@ -4,7 +4,7 @@ import { BsThreeDots } from "react-icons/bs";
 import Link from "next/link";
 import { Class } from "@/store/feature/classSlice";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 interface ClassCardProps {
   cls: Class;
   index: number;
