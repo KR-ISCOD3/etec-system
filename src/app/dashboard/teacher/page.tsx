@@ -288,11 +288,11 @@ export default function TeacherPage() {
         typeof error === "object" &&
         error !== null &&
         "message" in error &&
-        typeof (error as any).message === "string"
+        typeof (error as { message?: unknown }).message === "string"
       ) {
-        message = (error as any).message;
+        message = (error as { message: string }).message;
       }
-  
+      
       toast.error(message, {
         position: "bottom-right",
       });
