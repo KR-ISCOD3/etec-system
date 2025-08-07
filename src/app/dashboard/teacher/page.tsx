@@ -10,6 +10,7 @@ import { fetchCourses } from "@/store/feature/courseSlice";
 import { fetchBranches } from "@/store/feature/branchSlice";
 import { fetchRooms } from "@/store/feature/roomSlice";
 import { addClass, fetchClassesByUserId, preEndClass, softDeleteClass, updateClass } from "@/store/feature/classSlice";
+import { createStudent } from "@/store/feature/stuSlice";
 import timesByTerm from "@/app/data/timeByTerm";
 import type { Class } from "@/store/feature/classSlice";
 import { toast, ToastContainer } from "react-toastify";
@@ -39,6 +40,7 @@ interface ClassFormData {
 }
 
 type FormData = ClassFormData | null;
+
 export default function TeacherPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -69,6 +71,12 @@ export default function TeacherPage() {
 
   // const [showPreEnded, setShowPreEnded] = useState(false);
   // const [preEndedClasses, setPreEndedClasses] = useState<Class[]>([]);
+
+  // Form state
+  const [name, setName] = useState("");
+  type Gender = "Male" | "Female" | "Other" | "";
+  const [gender, setGender] = useState<Gender>("");
+  const [phone, setPhone] = useState(""); 
 
   useEffect(() => {
     if (user === undefined) return; // or if loading user, wait
@@ -269,7 +277,7 @@ export default function TeacherPage() {
     }
   };
 
-
+  
   const endClass = async () => {
     
     if (!selectedClass?.id){console.log("No ID"); return};
@@ -329,6 +337,51 @@ export default function TeacherPage() {
     setIsopenPreEndModal(false)
   };
   
+  // Assume classes array exists; pick first class for example
+  const handleCreateStudent = () => {
+    const selectedClass = classes.length > 0 ? classes[0] : null;
+
+    if (!name || !gender) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    if (!user?.id) {
+      toast.error("User info missing, please login again.");
+      return;
+    }
+
+    if (!selectedClass?.id) {
+      toast.error("Please select a class.");
+      return;
+    }
+    
+    dispatch(
+      createStudent({
+        name,
+        gender,
+        phone,
+        teacher_id: user?.id,
+        class_id:selectedClass?.id,
+      })
+    )
+    .unwrap()
+    .then(() => {
+        // setIsModalAddStuOpen(false);
+        // Optionally reset form
+        setName("");
+        setGender("");
+        setPhone("");
+        toast.success("Student Add Success",{
+          position: 'bottom-right',
+          theme:"colored"
+        })
+      })
+      .catch((error) => {
+        alert("Failed to add student: " + error);
+      });
+  };
+
 
   const visibleClasses:Class[] = classes.filter(cls => cls.isdeleted !== 'enable');
   
@@ -672,67 +725,67 @@ export default function TeacherPage() {
         </form>
       </Modal>
 
-      {/* modal Add student */}
       <Modal
         isOpen={isModalAddStuOpen}
         onClose={() => setIsModalAddStuOpen(false)}
         title="Add New Student"
       >
-        <form className="space-y-4 mt-2">
-          {/* your data */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCreateStudent();
+          }}
+          className="space-y-4 mt-2"
+        >
           <div className="flex flex-wrap justify-between gap-3">
+            {/* Full Name */}
             <div className="w-full sm:w-[38%] relative">
-              <label
-                htmlFor="building1"
-                className="block mb-1 font-medium text-gray-700"
-              >
-                Select Tittle
+              <label htmlFor="studentName" className="block mb-1 font-medium text-gray-700">
+                Full Name
               </label>
 
               <input
+                id="studentName"
                 type="text"
-                name=""
-                id=""
                 placeholder="Enter Full Name"
-                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none"
+                required
               />
             </div>
 
+            {/* Gender */}
             <div className="w-full sm:w-[20%] relative">
-              <label
-                htmlFor="building1"
-                className="block mb-1 font-medium text-gray-700"
-              >
-                Select Tittle
+              <label htmlFor="studentGender" className="block mb-1 font-medium text-gray-700">
+                Gender
               </label>
-
               <select
-                name="building1"
-                id="building1"
-                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+                id="studentGender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value as "Male" | "Female" | "Other" | "")}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none"
+                required
               >
-                <option value="">Gender</option>
-                <option value="">Male</option>
-                <option value="">Female</option>
-                {/* Add options here */}
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
               </select>
-
-              <FaChevronDown className="pointer-events-none absolute right-3 top-[60%] transform  text-gray-600" />
             </div>
 
+            {/* Phone */}
             <div className="w-full sm:w-[38%] relative">
-              <label
-                htmlFor="building1"
-                className="block mb-1 font-medium text-gray-700"
-              >
-                Select Tittle
+              <label htmlFor="studentPhone" className="block mb-1 font-medium text-gray-700">
+                Phone Number
               </label>
               <input
-                type="text"
-                name=""
-                id=""
-                placeholder="Enter TeL"
-                className="w-full appearance-none border border-gray-300 rounded px-3 py-2 pr-8 text-gray-700 focus:outline-none focus:ring-0"
+                id="studentPhone"
+                type="tel"
+                placeholder="Enter Phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none"
               />
             </div>
           </div>
@@ -745,19 +798,13 @@ export default function TeacherPage() {
             >
               Cancel
             </button>
-            <button
-              onClick={() => {
-                // playClickSound();
-                // your save logic here, e.g. form submit or state update
-              }}
-              type="button"
-              className="btn btn-md bg-blue-950 text-white px-10"
-            >
-              {mode == "update" ? "Save Change" : "Add Student"}
+            <button type="submit" className="btn btn-md bg-blue-950 text-white px-10">
+              {mode === "update" ? "Save Change" : "Add Student"}
             </button>
           </div>
         </form>
       </Modal>
+
 
       {/* modal transfer class */}
       <Modal

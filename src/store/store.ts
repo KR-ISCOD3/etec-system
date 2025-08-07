@@ -4,6 +4,7 @@ import courseReducer from "./feature/courseSlice"; // import course reducer
 import branchReducer from "./feature/branchSlice";
 import roomReducer from "./feature/roomSlice";
 import classReducer from "./feature/classSlice";
+import stuReducer from "./feature/stuSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     branches: branchReducer,
     rooms: roomReducer,
     class: classReducer,
+    stu: stuReducer,
   },
 });
 
