@@ -2,14 +2,16 @@
 import { IoHome, IoClose } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 import Link from "next/link";
+import { Class } from "@/store/feature/classSlice";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ClassCardProps {
-  cls: any;
+  cls: Class;
   index: number;
   dropdownOpenIndex: number | null;
   toggleDropdown: (index: number) => void;
   openAddStudentModal: () => void;
-  openUpdateModal: (cls: any) => void;
+  openUpdateModal: (cls: Class) => void;
   openTransferModal: () => void;
   openPreEndModal: () => void;
   openEndModal: () => void;

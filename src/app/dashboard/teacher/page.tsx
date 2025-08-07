@@ -202,6 +202,16 @@ export default function TeacherPage() {
     }
   }, [formData?.term]);
 
+  // Type guard to check if error has a message
+  function isErrorWithMessage(error: unknown): error is { message: string } {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      "message" in error &&
+      typeof (error as { message?: unknown }).message === "string"
+    );
+  }
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -223,7 +233,7 @@ export default function TeacherPage() {
       term: formData.term || "",
       time: formData.time || "",
     };
-
+  
     try {
       if (mode === "add") {
         await dispatch(addClass(submissionData)).unwrap();
@@ -249,13 +259,8 @@ export default function TeacherPage() {
       setIsModalOpen(false);
     } catch (error: unknown) {
       let message = "Something went wrong!";
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "message" in error &&
-        typeof (error as any).message === "string"
-      ) {
-        message = (error as any).message;
+      if (isErrorWithMessage(error)) {
+        message = error.message;
       }
   
       toast.error(message, {
@@ -307,8 +312,19 @@ export default function TeacherPage() {
         position: "bottom-right",
         theme: "colored"
       });
-    } catch (err) {
-      toast.error("Failed to fetch pre-ended classes");
+    } catch (err:unknown) {
+      let message = "Failed to fetch pre-ended classes";
+
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        "message" in err &&
+        typeof (err as { message?: unknown }).message === "string"
+      ) {
+        message = (err as { message: string }).message;
+      }
+    
+      toast.error(message);
     }
     setIsopenPreEndModal(false)
   };

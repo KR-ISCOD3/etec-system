@@ -3,14 +3,15 @@ import React from "react";
 import { IoHome, IoClose } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 import { useRouter } from "next/navigation";
+import { Class } from "@/store/feature/classSlice";
 
 interface ClassRowProps {
-  cls: any;
+  cls: Class;
   index: number;
   dropdownOpenIndex: number | null;
   toggleDropdown: (index: number) => void;
   openAddStudentModal: () => void;
-  openUpdateModal: (cls: any) => void;
+  openUpdateModal: (cls: Class) => void;
   openTransferModal: () => void;
   openPreEndModal: () => void;
   openEndModal: () => void;

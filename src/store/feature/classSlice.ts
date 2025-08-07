@@ -136,9 +136,28 @@ export const preEndClass = createAsyncThunk<
       { withCredentials: true }
     );
     return response.data.data[0] as Class;
-  } catch (error: any) {
-    return rejectWithValue(error?.response?.data?.error || 'Failed to pre end class');
+    
+  }catch (error: unknown) {
+    let errorMessage = 'Failed to pre end class';
+  
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'response' in error &&
+      typeof (error as any).response === 'object' &&
+      (error as any).response !== null &&
+      'data' in (error as any).response &&
+      typeof (error as any).response.data === 'object' &&
+      (error as any).response.data !== null &&
+      'error' in (error as any).response.data &&
+      typeof (error as any).response.data.error === 'string'
+    ) {
+      errorMessage = (error as any).response.data.error;
+    }
+  
+    return rejectWithValue(errorMessage);
   }
+  
 });
 
 
